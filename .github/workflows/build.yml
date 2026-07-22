@@ -1,4 +1,4 @@
-name: Build Android APK from Zip
+name: Build Android APK
 
 on:
   push:
@@ -13,10 +13,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Unzip project files if zip exists
+    - name: Unzip Project
       run: |
         if [ -f "stream-browser.zip" ]; then
-          echo "Unzipping stream-browser.zip..."
           unzip -o stream-browser.zip
         fi
 
@@ -29,19 +28,11 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Make gradlew executable (if present)
+    - name: Generate Gradle Wrapper and Build APK
       run: |
-        if [ -f "./gradlew" ]; then
-          chmod +x ./gradlew
-        fi
-
-    - name: Build APK with Gradle
-      run: |
-        if [ -f "./gradlew" ]; then
-          ./gradlew assembleDebug
-        else
-          gradle assembleDebug
-        fi
+        gradle wrapper
+        chmod +x gradlew
+        ./gradlew assembleDebug --stacktrace
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
