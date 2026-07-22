@@ -1,0 +1,50 @@
+name: Build Android APK from Zip
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Unzip project files if zip exists
+      run: |
+        if [ -f "stream-browser.zip" ]; then
+          echo "Unzipping stream-browser.zip..."
+          unzip -o stream-browser.zip
+        fi
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Make gradlew executable (if present)
+      run: |
+        if [ -f "./gradlew" ]; then
+          chmod +x ./gradlew
+        fi
+
+    - name: Build APK with Gradle
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleDebug
+        else
+          gradle assembleDebug
+        fi
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: "**/build/outputs/apk/debug/*.apk"
